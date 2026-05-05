@@ -1,4 +1,4 @@
-import Student from "../models/Student.js";
+import Student from "../models/student.js";  // lowercase 's'
 
 // CREATE
 export const createStudent = async (req, res, next) => {
