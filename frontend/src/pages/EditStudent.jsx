@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getStudent, updateStudent } from "../services/studentService";
+import AvatarUpload from "../components/AvatarUpload";
 
 const COURSES = [
   "Computer Science", "Mathematics", "Physics", "Chemistry",
@@ -22,11 +23,12 @@ const validate = (form) => {
 const EditStudent = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name: "", email: "", age: "", course: "" });
-  const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false);
+  const [form, setForm]         = useState({ name: "", email: "", age: "", course: "", avatar: null });
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [errors, setErrors]     = useState({});
+  const [loading, setLoading]   = useState(false);
   const [fetching, setFetching] = useState(true);
-  const [success, setSuccess] = useState(false);
+  const [success, setSuccess]   = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -51,7 +53,14 @@ const EditStudent = () => {
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
     setLoading(true);
     try {
-      await updateStudent(id, form);
+      const payload = new FormData();
+      payload.append("name",   form.name);
+      payload.append("email",  form.email);
+      payload.append("age",    form.age);
+      payload.append("course", form.course);
+      if (avatarFile) payload.append("avatar", avatarFile);
+
+      await updateStudent(id, payload);
       setSuccess(true);
       setTimeout(() => navigate("/"), 1000);
     } catch (err) {
@@ -63,8 +72,7 @@ const EditStudent = () => {
     return (
       <div className="edit-page">
         <div className="edit-container loading-state">
-          <div className="page-spinner" />
-          <p>Loading student…</p>
+          <div className="page-spinner" /><p>Loading student…</p>
         </div>
       </div>
     );
@@ -73,10 +81,9 @@ const EditStudent = () => {
   return (
     <div className="edit-page">
       <div className="edit-container">
-        {/* Back button */}
         <button className="back-btn" onClick={() => navigate("/")}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
-            <path d="M19 12H5M12 5l-7 7 7 7" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M19 12H5M12 5l-7 7 7 7" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
           Back to Dashboard
         </button>
@@ -92,7 +99,7 @@ const EditStudent = () => {
             <div className="form-success">
               <div className="success-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="32" height="32">
-                  <polyline points="20 6 9 17 4 12" strokeLinecap="round" strokeLinejoin="round" />
+                  <polyline points="20 6 9 17 4 12" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </div>
               <h3>Updated!</h3>
@@ -100,34 +107,29 @@ const EditStudent = () => {
             </div>
           ) : (
             <form onSubmit={handleSubmit} noValidate>
-              <div className="form-grid">
+              <div style={{ padding: "0 32px", marginBottom: 4 }}>
+                <AvatarUpload current={form.avatar} onChange={setAvatarFile} />
+              </div>
+
+              <div className="form-grid" style={{ padding: "0 32px" }}>
                 {[
-                  { label: "Full Name", name: "name", type: "text", placeholder: "Jane Smith" },
-                  { label: "Email Address", name: "email", type: "email", placeholder: "jane@university.edu" },
-                  { label: "Age", name: "age", type: "number", placeholder: "22" },
+                  { label: "Full Name",     name: "name",  type: "text",   placeholder: "Jane Smith" },
+                  { label: "Email Address", name: "email", type: "email",  placeholder: "jane@university.edu" },
+                  { label: "Age",           name: "age",   type: "number", placeholder: "22" },
                 ].map(({ label, name, type, placeholder }) => (
                   <div className="form-field" key={name}>
                     <label className="form-label">{label}</label>
-                    <input
-                      type={type}
-                      name={name}
-                      value={form[name] || ""}
-                      onChange={handleChange}
+                    <input type={type} name={name} value={form[name] || ""} onChange={handleChange}
                       placeholder={placeholder}
-                      className={`form-input ${errors[name] ? "error" : ""}`}
-                    />
+                      className={`form-input ${errors[name] ? "error" : ""}`} />
                     {errors[name] && <span className="form-error">{errors[name]}</span>}
                   </div>
                 ))}
 
                 <div className="form-field">
                   <label className="form-label">Course</label>
-                  <select
-                    name="course"
-                    value={form.course || ""}
-                    onChange={handleChange}
-                    className={`form-input form-select ${errors.course ? "error" : ""}`}
-                  >
+                  <select name="course" value={form.course || ""} onChange={handleChange}
+                    className={`form-input form-select ${errors.course ? "error" : ""}`}>
                     <option value="">Select a course…</option>
                     {COURSES.map((c) => <option key={c} value={c}>{c}</option>)}
                   </select>
@@ -135,20 +137,15 @@ const EditStudent = () => {
                 </div>
               </div>
 
-              <div className="form-actions edit-actions">
-                <button type="button" className="btn-secondary" onClick={() => navigate("/")}>
-                  Cancel
-                </button>
+              <div className="form-actions edit-actions" style={{ padding: "0 32px 32px" }}>
+                <button type="button" className="btn-secondary" onClick={() => navigate("/")}>Cancel</button>
                 <button type="submit" className="btn-primary" disabled={loading}>
-                  {loading ? (
-                    <><span className="spinner white" /> Saving…</>
-                  ) : (
-                    <><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
+                  {loading ? <><span className="spinner white" /> Saving…</> : <>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
                       <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" strokeLinecap="round"/>
                       <polyline points="17 21 17 13 7 13 7 21" strokeLinecap="round"/>
                       <polyline points="7 3 7 8 15 8" strokeLinecap="round"/>
-                    </svg> Save Changes</>
-                  )}
+                    </svg> Save Changes</>}
                 </button>
               </div>
             </form>

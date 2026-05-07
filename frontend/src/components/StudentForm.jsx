@@ -1,6 +1,7 @@
 import { useState, useContext } from "react";
 import { createStudent } from "../services/studentService";
 import { StudentContext } from "../context/StudentContext";
+import AvatarUpload from "./AvatarUpload";
 
 const COURSES = [
   "Computer Science", "Mathematics", "Physics", "Chemistry",
@@ -21,8 +22,9 @@ const validate = (form) => {
 };
 
 const StudentForm = ({ onSuccess }) => {
-  const { fetchStudents } = useContext(StudentContext);
-  const [form, setForm] = useState({ name: "", email: "", age: "", course: "" });
+  const { fetchStudents, queryParams } = useContext(StudentContext);
+  const [form, setForm]     = useState({ name: "", email: "", age: "", course: "" });
+  const [avatarFile, setAvatarFile] = useState(null);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -39,37 +41,22 @@ const StudentForm = ({ onSuccess }) => {
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
     setLoading(true);
     try {
-      await createStudent(form);
-      await fetchStudents();
+      const payload = new FormData();
+      Object.entries(form).forEach(([k, v]) => payload.append(k, v));
+      if (avatarFile) payload.append("avatar", avatarFile);
+
+      await createStudent(payload);
+      await fetchStudents({ ...queryParams, page: 1 });
       setSuccess(true);
-      setTimeout(() => {
-        setSuccess(false);
-        onSuccess?.();
-      }, 1200);
+      setTimeout(() => { setSuccess(false); onSuccess?.(); }, 1200);
       setForm({ name: "", email: "", age: "", course: "" });
+      setAvatarFile(null);
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
   };
-
-  const Field = ({ label, name, type = "text", placeholder, children }) => (
-    <div className="form-field">
-      <label className="form-label">{label}</label>
-      {children || (
-        <input
-          type={type}
-          name={name}
-          value={form[name]}
-          onChange={handleChange}
-          placeholder={placeholder}
-          className={`form-input ${errors[name] ? "error" : ""}`}
-        />
-      )}
-      {errors[name] && <span className="form-error">{errors[name]}</span>}
-    </div>
-  );
 
   if (success) {
     return (
@@ -93,54 +80,40 @@ const StudentForm = ({ onSuccess }) => {
       </div>
 
       <form onSubmit={handleSubmit} noValidate>
+        {/* Avatar upload spans full width */}
+        <div style={{ marginBottom: 20 }}>
+          <AvatarUpload current={null} onChange={setAvatarFile} />
+        </div>
+
         <div className="form-grid">
-          <Field label="Full Name" name="name" placeholder="e.g. Jane Smith">
-            <input
-              type="text"
-              name="name"
-              value={form.name}
-              onChange={handleChange}
+          <div className="form-field">
+            <label className="form-label">Full Name</label>
+            <input type="text" name="name" value={form.name} onChange={handleChange}
               placeholder="e.g. Jane Smith"
-              className={`form-input ${errors.name ? "error" : ""}`}
-              autoFocus
-            />
+              className={`form-input ${errors.name ? "error" : ""}`} autoFocus />
             {errors.name && <span className="form-error">{errors.name}</span>}
-          </Field>
+          </div>
 
-          <Field label="Email Address" name="email" placeholder="jane@university.edu">
-            <input
-              type="email"
-              name="email"
-              value={form.email}
-              onChange={handleChange}
+          <div className="form-field">
+            <label className="form-label">Email Address</label>
+            <input type="email" name="email" value={form.email} onChange={handleChange}
               placeholder="jane@university.edu"
-              className={`form-input ${errors.email ? "error" : ""}`}
-            />
+              className={`form-input ${errors.email ? "error" : ""}`} />
             {errors.email && <span className="form-error">{errors.email}</span>}
-          </Field>
+          </div>
 
-          <Field label="Age" name="age">
-            <input
-              type="number"
-              name="age"
-              value={form.age}
-              onChange={handleChange}
-              placeholder="22"
-              min="5"
-              max="100"
-              className={`form-input ${errors.age ? "error" : ""}`}
-            />
+          <div className="form-field">
+            <label className="form-label">Age</label>
+            <input type="number" name="age" value={form.age} onChange={handleChange}
+              placeholder="22" min="5" max="100"
+              className={`form-input ${errors.age ? "error" : ""}`} />
             {errors.age && <span className="form-error">{errors.age}</span>}
-          </Field>
+          </div>
 
           <div className="form-field">
             <label className="form-label">Course</label>
-            <select
-              name="course"
-              value={form.course}
-              onChange={handleChange}
-              className={`form-input form-select ${errors.course ? "error" : ""}`}
-            >
+            <select name="course" value={form.course} onChange={handleChange}
+              className={`form-input form-select ${errors.course ? "error" : ""}`}>
               <option value="">Select a course…</option>
               {COURSES.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
@@ -151,20 +124,14 @@ const StudentForm = ({ onSuccess }) => {
         <div className="form-actions">
           <button type="submit" className="btn-primary btn-full" disabled={loading}>
             {loading ? (
-              <>
-                <span className="spinner white" />
-                Enrolling…
-              </>
+              <><span className="spinner white" /> Enrolling…</>
             ) : (
-              <>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
+              <><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
                   <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" strokeLinecap="round"/>
                   <circle cx="9" cy="7" r="4"/>
                   <line x1="19" y1="8" x2="19" y2="14" strokeLinecap="round"/>
                   <line x1="22" y1="11" x2="16" y2="11" strokeLinecap="round"/>
-                </svg>
-                Enroll Student
-              </>
+                </svg> Enroll Student</>
             )}
           </button>
         </div>
