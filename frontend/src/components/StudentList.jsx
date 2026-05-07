@@ -12,8 +12,7 @@ const SORT_OPTIONS = [
   { value: "age-desc",   label: "Age ↓" },
   { value: "course-asc", label: "Course A→Z" },
 ];
-
-const AVATAR_URL = "http://localhost:5000/uploads/profiles/";
+const AVATAR_URL = "https://student-management-1-a7x3.onrender.com/uploads/profiles/";
 
 const StudentList = () => {
   const { students, pagination, queryParams, fetchStudents } = useContext(StudentContext);

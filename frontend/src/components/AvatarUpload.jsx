@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 
-const AVATAR_URL = "http://localhost:5000/uploads/profiles/";
+const AVATAR_URL = "https://student-management-1-a7x3.onrender.com/uploads/profiles/";
 
 const AvatarUpload = ({ current, onChange }) => {
   const inputRef = useRef();

@@ -3,7 +3,7 @@ import axios from "axios";
 
 export const AuthContext = createContext();
 
-const BASE = "http://localhost:5000";
+const BASE = "https://student-management-1-a7x3.onrender.com";
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser]       = useState(null);
