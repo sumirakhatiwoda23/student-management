@@ -25,11 +25,11 @@ const validate = (form) => {
 
 const StudentForm = ({ onSuccess, defaultCourse = "" }) => {
   const { fetchStudents, queryParams } = useContext(StudentContext);
-  const [form, setForm]     = useState({ name: "", email: "", age: "", course: defaultCourse });
+  const [form, setForm]         = useState({ name: "", email: "", age: "", course: defaultCourse });
   const [avatarFile, setAvatarFile] = useState(null);
-  const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const [errors, setErrors]     = useState({});
+  const [loading, setLoading]   = useState(false);
+  const [success, setSuccess]   = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -46,7 +46,6 @@ const StudentForm = ({ onSuccess, defaultCourse = "" }) => {
       const payload = new FormData();
       Object.entries(form).forEach(([k, v]) => payload.append(k, v));
       if (avatarFile) payload.append("avatar", avatarFile);
-
       await createStudent(payload);
       await fetchStudents({ ...queryParams, page: 1 });
       setSuccess(true);
@@ -68,7 +67,7 @@ const StudentForm = ({ onSuccess, defaultCourse = "" }) => {
             <polyline points="20 6 9 17 4 12" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </div>
-        <h3>Student Added!</h3>
+        <h3>Student Enrolled!</h3>
         <p>The student has been successfully enrolled.</p>
       </div>
     );
@@ -78,7 +77,7 @@ const StudentForm = ({ onSuccess, defaultCourse = "" }) => {
     <div className="student-form">
       <div className="form-header">
         <h2>Enroll New Student</h2>
-        <p>Fill in the details below to add a student to the system</p>
+        <p>Fill in the details below to enroll a student</p>
       </div>
 
       <form onSubmit={handleSubmit} noValidate>
@@ -127,12 +126,15 @@ const StudentForm = ({ onSuccess, defaultCourse = "" }) => {
             {loading ? (
               <><span className="spinner white" /> Enrolling…</>
             ) : (
-              <><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
+              <>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
                   <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" strokeLinecap="round"/>
                   <circle cx="9" cy="7" r="4"/>
                   <line x1="19" y1="8" x2="19" y2="14" strokeLinecap="round"/>
                   <line x1="22" y1="11" x2="16" y2="11" strokeLinecap="round"/>
-                </svg> Enroll Student</>
+                </svg>
+                Enroll Student
+              </>
             )}
           </button>
         </div>

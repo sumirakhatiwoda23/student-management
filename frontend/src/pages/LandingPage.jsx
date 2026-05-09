@@ -1,11 +1,24 @@
 import { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
+import Modal from "../components/Modal";
+import StudentForm from "../components/StudentForm";
 
 const LandingPage = () => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState(null);
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
+
+  const handleEnroll = (courseName) => {
+    if (user) {
+      setSelectedCourse(courseName);
+      setShowModal(true);
+    } else {
+      navigate("/login");
+    }
+  };
 
   return (
     <div className="landing">
@@ -25,10 +38,11 @@ const LandingPage = () => {
             <a href="#home" onClick={() => setMenuOpen(false)}>Home</a>
             <a href="#courses" onClick={() => setMenuOpen(false)}>Courses</a>
             <a href="#contact" onClick={() => setMenuOpen(false)}>Contact</a>
-            {user
-              ? <button className="nav-cta" onClick={() => navigate("/dashboard")}>Dashboard</button>
-              : <button className="nav-cta" onClick={() => navigate("/login")}>Sign In</button>
-            }
+            {user ? (
+              <button className="nav-cta" onClick={() => navigate("/dashboard")}>Dashboard</button>
+            ) : (
+              <button className="nav-cta" onClick={() => navigate("/login")}>Sign In</button>
+            )}
           </nav>
 
           <button className="hamburger" onClick={() => setMenuOpen(!menuOpen)} aria-label="Menu">
@@ -51,8 +65,8 @@ const LandingPage = () => {
             Academia gives educators and administrators one powerful platform to track students, manage courses, and make data-driven decisions.
           </p>
           <div className="hero-btns">
-            <button className="hero-btn-primary" onClick={() => navigate("/login")}>
-              Get Started Free
+            <button className="hero-btn-primary" onClick={() => handleEnroll(null)}>
+              Enroll a Student
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18">
                 <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round"/>
               </svg>
@@ -115,11 +129,11 @@ const LandingPage = () => {
         <div className="landing-courses-grid">
           {[
             { name: "Computer Science", students: 120, duration: "4 years", icon: "💻", color: "#f59e0b" },
-            { name: "Psychology", students: 85, duration: "3 years", icon: "🧠", color: "#8b5cf6" },
-            { name: "Mathematics", students: 95, duration: "4 years", icon: "📐", color: "#10b981" },
-            { name: "Data Science", students: 110, duration: "2 years", icon: "📊", color: "#06b6d4" },
-            { name: "Business Admin", students: 75, duration: "3 years", icon: "💼", color: "#f43f5e" },
-            { name: "Engineering", students: 130, duration: "4 years", icon: "⚙️", color: "#3b82f6" },
+            { name: "Psychology",       students: 85,  duration: "3 years", icon: "🧠", color: "#8b5cf6" },
+            { name: "Mathematics",      students: 95,  duration: "4 years", icon: "📐", color: "#10b981" },
+            { name: "Data Science",     students: 110, duration: "2 years", icon: "📊", color: "#06b6d4" },
+            { name: "Business",         students: 75,  duration: "3 years", icon: "💼", color: "#f43f5e" },
+            { name: "Engineering",      students: 130, duration: "4 years", icon: "⚙️", color: "#3b82f6" },
           ].map((c) => (
             <div className="lc-card" key={c.name}>
               <div className="lc-icon" style={{ background: c.color + "20", color: c.color }}>{c.icon}</div>
@@ -128,8 +142,12 @@ const LandingPage = () => {
                 <span>👥 {c.students} students</span>
                 <span>⏱ {c.duration}</span>
               </div>
-              <button className="lc-enroll" onClick={() => navigate("/login")} style={{ borderColor: c.color, color: c.color }}>
-                Enroll Now →
+              <button
+                className="lc-enroll"
+                onClick={() => handleEnroll(c.name)}
+                style={{ borderColor: c.color, color: c.color }}
+              >
+                {user ? "Enroll Student →" : "Sign In to Enroll →"}
               </button>
             </div>
           ))}
@@ -171,7 +189,6 @@ const LandingPage = () => {
             </div>
             <p>Empowering educators with modern student management tools.</p>
           </div>
-
           <div className="footer-links">
             <div className="footer-col">
               <h4>Information</h4>
@@ -205,6 +222,16 @@ const LandingPage = () => {
           </div>
         </div>
       </footer>
+
+      {/* Enroll Modal — only shown when logged in */}
+      {showModal && (
+        <Modal onClose={() => { setShowModal(false); setSelectedCourse(null); }}>
+          <StudentForm
+            defaultCourse={selectedCourse}
+            onSuccess={() => { setShowModal(false); setSelectedCourse(null); }}
+          />
+        </Modal>
+      )}
     </div>
   );
 };
