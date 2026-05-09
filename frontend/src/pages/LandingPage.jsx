@@ -162,8 +162,8 @@ const LandingPage = () => {
             <p>Have questions? We'd love to hear from you.</p>
             <div className="contact-info">
               <div>📧 support@academia.edu</div>
-              <div>📞 +1 (800) 123-4567</div>
-              <div>📍 123 University Ave, Education City</div>
+              <div>📞 +977 9847867165</div>
+              <div>📍 Kathmandu, Nepal</div>
             </div>
           </div>
           <form className="contact-form" onSubmit={(e) => e.preventDefault()}>

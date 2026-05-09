@@ -532,3 +532,292 @@ button { cursor: pointer; font-family: inherit; border: none; background: none; 
   .home { padding: 0 16px 40px; }
 }
 @media (max-width: 480px) { .stats-grid { grid-template-columns: 1fr; } .student-grid { grid-template-columns: 1fr; } }
+
+
+/* ════════════════════════════════════════
+   ADDITIONS — paste at end of index.css
+════════════════════════════════════════ */
+
+/* ── Avatar Upload (beautiful version) ── */
+.avatar-upload-field { display: flex; flex-direction: column; gap: 8px; }
+
+.avatar-drop-zone {
+  position: relative;
+  border: 2px dashed var(--border);
+  border-radius: 14px;
+  background: var(--bg-3);
+  cursor: pointer;
+  transition: all 0.25s;
+  overflow: hidden;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.avatar-drop-zone:hover,
+.avatar-drop-zone:focus-visible {
+  border-color: var(--amber);
+  background: var(--amber-dim);
+  outline: none;
+}
+.avatar-drop-zone.drag-over {
+  border-color: var(--amber);
+  background: var(--amber-dim);
+  transform: scale(1.01);
+  box-shadow: 0 0 0 4px var(--amber-glow);
+}
+.avatar-drop-zone.has-preview {
+  border-style: solid;
+  border-color: var(--border);
+  min-height: 0;
+}
+.avatar-drop-zone.has-preview:hover { border-color: var(--amber); }
+
+.avatar-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px 16px;
+}
+.avatar-upload-icon {
+  width: 64px; height: 64px;
+  background: var(--bg-4);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-3);
+  margin-bottom: 4px;
+  transition: all 0.2s;
+}
+.avatar-drop-zone:hover .avatar-upload-icon {
+  background: var(--amber-dim);
+  color: var(--amber);
+}
+.avatar-upload-text { text-align: center; }
+.avatar-upload-main {
+  font-size: 13px; color: var(--text-2); margin-bottom: 4px;
+}
+.avatar-upload-link { color: var(--amber); font-weight: 600; }
+.avatar-upload-hint { font-size: 11px; color: var(--text-3); }
+
+.avatar-preview-wrap {
+  position: relative;
+  width: 100%;
+}
+.avatar-preview-img {
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  display: block;
+  border-radius: 12px;
+}
+.avatar-overlay {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 6px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  border-radius: 12px;
+  color: white;
+  font-size: 13px; font-weight: 600;
+}
+.avatar-drop-zone:hover .avatar-overlay { opacity: 1; }
+
+.avatar-remove-btn {
+  position: absolute;
+  top: 8px; right: 8px;
+  width: 24px; height: 24px;
+  background: rgba(0,0,0,0.6);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 50%;
+  color: white;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  z-index: 10;
+}
+.avatar-remove-btn:hover { background: var(--red); }
+
+.avatar-drag-indicator {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 8px;
+  background: var(--amber-dim);
+  color: var(--amber);
+  font-size: 14px; font-weight: 600;
+  pointer-events: none;
+}
+
+/* ── Logout Button (new) ── */
+.btn-logout-new {
+  display: flex; align-items: center; gap: 7px;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  background: rgba(220,38,38,0.06);
+  border: 1px solid rgba(220,38,38,0.15);
+  color: var(--red);
+  font-size: 13px; font-weight: 600;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.btn-logout-new:hover {
+  background: rgba(220,38,38,0.12);
+  border-color: var(--red);
+  transform: translateY(-1px);
+}
+.btn-logout-new span { display: none; }
+@media (min-width: 900px) { .btn-logout-new span { display: inline; } }
+
+/* ── Logout Confirmation Modal ── */
+.logout-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.35);
+  backdrop-filter: blur(6px);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 200;
+  animation: fadeIn 0.15s ease;
+}
+.logout-modal {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 36px 32px;
+  width: 100%; max-width: 380px;
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+  animation: scaleIn 0.2s ease;
+}
+.logout-icon {
+  width: 64px; height: 64px;
+  background: rgba(220,38,38,0.08);
+  border: 1px solid rgba(220,38,38,0.18);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--red);
+  margin: 0 auto 20px;
+}
+.logout-modal h3 {
+  font-family: 'Sora', sans-serif;
+  font-size: 20px; font-weight: 700;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+.logout-modal p {
+  font-size: 14px; color: var(--text-3);
+  margin-bottom: 28px; line-height: 1.6;
+}
+.logout-actions { display: flex; gap: 10px; }
+.logout-cancel {
+  flex: 1; padding: 11px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-3);
+  color: var(--text-2);
+  font-size: 14px; font-weight: 600;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.logout-cancel:hover { background: var(--bg-4); border-color: var(--border-hover); }
+.logout-confirm {
+  flex: 1; padding: 11px;
+  border-radius: 10px;
+  border: none;
+  background: var(--red);
+  color: white;
+  font-size: 14px; font-weight: 600;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.logout-confirm:hover { background: #b91c1c; transform: translateY(-1px); }
+
+/* ── Password Strength Indicator ── */
+.password-strength {
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 6px;
+}
+.strength-bar {
+  flex: 1; height: 4px; border-radius: 2px;
+  transition: all 0.3s;
+}
+.strength-bar.weak { background: var(--red); width: 33%; }
+.strength-bar.medium { background: var(--amber); }
+.strength-bar.strong { background: var(--emerald); }
+.strength-label { font-size: 11px; color: var(--text-3); white-space: nowrap; }
+
+/* ── Password Match Indicator ── */
+.password-match {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 12px; color: var(--emerald); font-weight: 500;
+  margin-top: 4px;
+}
+
+/* ── Auth Terms ── */
+.auth-terms {
+  font-size: 12px; color: var(--text-3);
+  text-align: center; margin-top: -8px;
+  margin-bottom: 12px; line-height: 1.5;
+}
+.auth-terms a { color: var(--amber); text-decoration: underline; }
+
+/* ── Register features panel (left side) ── */
+.auth-register-features {
+  display: flex; flex-direction: column; gap: 14px;
+}
+.auth-register-features-title {
+  font-size: 13px; color: rgba(255,255,255,0.5);
+  font-weight: 500; margin-bottom: 4px;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.auth-register-feature {
+  display: flex; align-items: flex-start; gap: 14px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 14px;
+  transition: all 0.2s;
+}
+.auth-register-feature:hover { background: rgba(255,255,255,0.08); }
+.auth-register-feature-icon {
+  font-size: 22px; flex-shrink: 0;
+  width: 40px; height: 40px;
+  background: rgba(217,119,6,0.15);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+}
+.auth-register-feature strong {
+  display: block; color: white;
+  font-size: 14px; font-weight: 600;
+  margin-bottom: 3px;
+}
+.auth-register-feature span {
+  color: rgba(255,255,255,0.5);
+  font-size: 12px; line-height: 1.5;
+}
+
+/* ── Pagination info ── */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.pagination-info { font-size: 12px; color: var(--text-3); }
+.pagination-controls { display: flex; gap: 4px; }
+.page-ellipsis { padding: 7px 6px; font-size: 13px; color: var(--text-3); }
+
+/* ── Dash page title with button ── */
+.dash-page-title {
+  max-width: 1300px; margin: 0 auto;
+  padding: 28px 24px 0;
+  display: flex; justify-content: space-between; align-items: center;
+}

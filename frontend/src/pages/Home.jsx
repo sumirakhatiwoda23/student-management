@@ -60,6 +60,13 @@ const Home = () => {
           <h2>Dashboard</h2>
           <p>Welcome back, <strong>{user?.name}</strong> 👋</p>
         </div>
+        {/* Single Enroll Student button here */}
+        <button className="btn-add" onClick={() => setShowModal(true)}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="16" height="16">
+            <path d="M12 5v14M5 12h14" strokeLinecap="round"/>
+          </svg>
+          Enroll Student
+        </button>
       </div>
 
       <div className="dash-stats">
@@ -83,9 +90,6 @@ const Home = () => {
       <div className="dash-main">
         <div className="dash-section-header">
           <h3>All Students</h3>
-          <button className="btn-add-sm" onClick={() => setShowModal(true)}>
-            + Enroll Student
-          </button>
         </div>
         <StudentList />
       </div>

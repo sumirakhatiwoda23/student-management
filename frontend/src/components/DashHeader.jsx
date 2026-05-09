@@ -1,17 +1,21 @@
 import { useContext, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
-import Modal from "./Modal";
-import StudentForm from "./StudentForm";
 
 const DashHeader = () => {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [showModal, setShowModal] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const isActive = (path) => location.pathname === path ? "active" : "";
+
+  const handleLogout = () => {
+    setShowLogoutConfirm(false);
+    logout();
+    navigate("/");
+  };
 
   return (
     <>
@@ -32,7 +36,6 @@ const DashHeader = () => {
 
           {/* Nav */}
           <nav className={`dash-nav ${menuOpen ? "open" : ""}`}>
-            {/* Home goes to landing page */}
             <a
               className={location.pathname === "/" ? "active" : ""}
               onClick={() => { navigate("/"); setMenuOpen(false); }}
@@ -69,20 +72,18 @@ const DashHeader = () => {
               </div>
             </div>
 
-            {/* Enroll button — visible to both admin and staff */}
-            <button className="btn-add" onClick={() => setShowModal(true)}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="16" height="16">
-                <path d="M12 5v14M5 12h14" strokeLinecap="round"/>
-              </svg>
-              Enroll Student
-            </button>
-
-            <button className="btn-logout" onClick={logout} title="Sign out">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18">
+            {/* Logout button */}
+            <button
+              className="btn-logout-new"
+              onClick={() => setShowLogoutConfirm(true)}
+              title="Sign out"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" strokeLinecap="round"/>
                 <polyline points="16 17 21 12 16 7" strokeLinecap="round"/>
                 <line x1="21" y1="12" x2="9" y2="12" strokeLinecap="round"/>
               </svg>
+              <span>Sign Out</span>
             </button>
 
             <button className="hamburger dash-hamburger" onClick={() => setMenuOpen(!menuOpen)}>
@@ -92,10 +93,29 @@ const DashHeader = () => {
         </div>
       </header>
 
-      {showModal && (
-        <Modal onClose={() => setShowModal(false)}>
-          <StudentForm onSuccess={() => setShowModal(false)} />
-        </Modal>
+      {/* Logout Confirmation Modal */}
+      {showLogoutConfirm && (
+        <div className="logout-overlay" onClick={() => setShowLogoutConfirm(false)}>
+          <div className="logout-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="logout-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="32" height="32">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" strokeLinecap="round"/>
+                <polyline points="16 17 21 12 16 7" strokeLinecap="round"/>
+                <line x1="21" y1="12" x2="9" y2="12" strokeLinecap="round"/>
+              </svg>
+            </div>
+            <h3>Sign Out</h3>
+            <p>Are you sure you want to sign out of your account?</p>
+            <div className="logout-actions">
+              <button className="logout-cancel" onClick={() => setShowLogoutConfirm(false)}>
+                Stay Logged In
+              </button>
+              <button className="logout-confirm" onClick={handleLogout}>
+                Yes, Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );
