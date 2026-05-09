@@ -14,19 +14,24 @@ const SORT_OPTIONS = [
 ];
 const AVATAR_URL = "https://student-management-1-a7x3.onrender.com/uploads/profiles/";
 
-const StudentList = () => {
+const StudentList = ({ initialCourse = "all" }) => {
   const { students, pagination, queryParams, fetchStudents } = useContext(StudentContext);
-  const { user } = useContext(AuthContext); // ← get logged-in user
-  const isAdmin = user?.role === "admin";  // ← check if admin
+  const { user } = useContext(AuthContext);
+  const isAdmin = user?.role === "admin";
 
   const navigate = useNavigate();
   const [search, setSearch]         = useState("");
-  const [courseFilter, setCourse]   = useState("all");
+  const [courseFilter, setCourse]   = useState(initialCourse);
   const [sort, setSort]             = useState("name-asc");
   const [deletingId, setDeletingId] = useState(null);
   const [viewMode, setViewMode]     = useState("table");
 
-  // Debounced fetch on filter change
+  // When initialCourse changes (e.g. navigating from Courses page), update filter
+  useEffect(() => {
+    setCourse(initialCourse);
+  }, [initialCourse]);
+
+  // Fetch whenever search or courseFilter changes
   useEffect(() => {
     const t = setTimeout(() => {
       fetchStudents({ ...queryParams, page: 1, search, course: courseFilter });
@@ -34,8 +39,10 @@ const StudentList = () => {
     return () => clearTimeout(t);
   }, [search, courseFilter]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Fetch on mount
-  useEffect(() => { fetchStudents({ page: 1, limit: 10, search: "", course: "all" }); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // Fetch on mount with initial course filter
+  useEffect(() => {
+    fetchStudents({ page: 1, limit: 10, search: "", course: initialCourse });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handlePageChange = useCallback((page) => {
     fetchStudents({ ...queryParams, page });
@@ -49,9 +56,12 @@ const StudentList = () => {
     setDeletingId(null);
   };
 
-  const clearFilters = () => { setSearch(""); setCourse("all"); };
+  const clearFilters = () => {
+    setSearch("");
+    setCourse("all");
+  };
 
-  // Client-side sort (server returns paginated chunk)
+  // Client-side sort
   const sorted = [...students].sort((a, b) => {
     const [field, dir] = sort.split("-");
     const av = field === "age" ? Number(a[field] || 0) : (a[field] || "").toLowerCase();
@@ -67,20 +77,20 @@ const StudentList = () => {
   const AVATAR_COLORS = ["#f59e0b","#10b981","#8b5cf6","#06b6d4","#f43f5e","#3b82f6"];
   const getColor = (name) => AVATAR_COLORS[(name?.charCodeAt(0) || 0) % AVATAR_COLORS.length];
 
-  const AvatarImg = ({ student, size = 36, className = "avatar" }) =>
+  const AvatarImg = ({ student, size = 36 }) =>
     student.avatar ? (
       <img
         src={`${AVATAR_URL}${student.avatar}`}
         alt={student.name}
-        className={className}
+        className="avatar"
         style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}
         onError={(e) => { e.target.style.display = "none"; e.target.nextSibling.style.display = "flex"; }}
       />
     ) : null;
 
-  const AvatarFallback = ({ student, size = 36, className = "avatar" }) => (
+  const AvatarFallback = ({ student, size = 36 }) => (
     <div
-      className={className}
+      className="avatar"
       style={{ background: getColor(student.name), width: size, height: size,
                display: student.avatar ? "none" : "flex" }}
     >
@@ -96,12 +106,31 @@ const StudentList = () => {
           <svg className="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35" strokeLinecap="round"/>
           </svg>
-          <input className="search-input" placeholder="Search students…"
-            value={search} onChange={(e) => setSearch(e.target.value)} />
+          <input
+            className="search-input"
+            placeholder="Search students…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
           {search && <button className="search-clear" onClick={() => setSearch("")}>×</button>}
         </div>
 
         <div className="toolbar-right">
+          {/* Course filter dropdown */}
+          <select
+            className="select-filter"
+            value={courseFilter}
+            onChange={(e) => setCourse(e.target.value)}
+          >
+            <option value="all">All Courses</option>
+            {["Computer Science","Mathematics","Physics","Chemistry","Biology","Engineering",
+              "Business","Economics","Psychology","Design","Literature","History",
+              "Data Science","Medicine","Law","Architecture","Environmental Science",
+              "Sociology","Philosophy","Art & Music"].map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+
           <select className="select-filter" value={sort} onChange={(e) => setSort(e.target.value)}>
             {SORT_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
@@ -129,6 +158,7 @@ const StudentList = () => {
           {pagination
             ? `${pagination.total} student${pagination.total !== 1 ? "s" : ""} total`
             : `${students.length} student${students.length !== 1 ? "s" : ""}`}
+          {courseFilter !== "all" && ` in ${courseFilter}`}
         </span>
         {(search || courseFilter !== "all") && (
           <button className="clear-filters" onClick={clearFilters}>Clear filters</button>
@@ -144,7 +174,11 @@ const StudentList = () => {
             </svg>
           </div>
           <p>No students found</p>
-          <span>Try adjusting your search or filters</span>
+          <span>
+            {courseFilter !== "all"
+              ? `No students enrolled in ${courseFilter} yet`
+              : "Try adjusting your search or filters"}
+          </span>
         </div>
       )}
 
@@ -180,8 +214,6 @@ const StudentList = () => {
                         </svg>
                         Edit
                       </button>
-
-                      {/* ← Only show Delete button for admin */}
                       {isAdmin && (
                         <button
                           className={`btn-delete ${deletingId === student._id ? "loading" : ""}`}
@@ -230,8 +262,6 @@ const StudentList = () => {
               </div>
               <div className="card-actions">
                 <button className="btn-edit" onClick={() => navigate(`/edit/${student._id}`)}>Edit</button>
-
-                {/* ← Only show Delete button for admin */}
                 {isAdmin && (
                   <button className={`btn-delete ${deletingId === student._id ? "loading" : ""}`}
                     onClick={() => handleDelete(student._id)} disabled={deletingId === student._id}>

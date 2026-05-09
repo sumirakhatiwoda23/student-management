@@ -45,6 +45,11 @@ const CoursesPage = () => {
     setShowModal(true);
   };
 
+  // Navigate to students page with course filter applied
+  const handleViewStudents = (courseName) => {
+    navigate(`/students?course=${encodeURIComponent(courseName)}`);
+  };
+
   return (
     <div className="dashboard">
       <DashHeader />
@@ -89,7 +94,7 @@ const CoursesPage = () => {
                   </button>
                   <button
                     className="cc-details"
-                    onClick={() => navigate("/students")}
+                    onClick={() => handleViewStudents(course.name)}
                   >
                     View Students →
                   </button>
