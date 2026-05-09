@@ -7,6 +7,8 @@ const COURSES = [
   "Computer Science", "Mathematics", "Physics", "Chemistry",
   "Biology", "Engineering", "Business", "Economics",
   "Psychology", "Design", "Literature", "History",
+  "Data Science", "Medicine", "Law", "Architecture",
+  "Environmental Science", "Sociology", "Philosophy", "Art & Music",
 ];
 
 const validate = (form) => {
@@ -21,9 +23,9 @@ const validate = (form) => {
   return errors;
 };
 
-const StudentForm = ({ onSuccess }) => {
+const StudentForm = ({ onSuccess, defaultCourse = "" }) => {
   const { fetchStudents, queryParams } = useContext(StudentContext);
-  const [form, setForm]     = useState({ name: "", email: "", age: "", course: "" });
+  const [form, setForm]     = useState({ name: "", email: "", age: "", course: defaultCourse });
   const [avatarFile, setAvatarFile] = useState(null);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -49,7 +51,7 @@ const StudentForm = ({ onSuccess }) => {
       await fetchStudents({ ...queryParams, page: 1 });
       setSuccess(true);
       setTimeout(() => { setSuccess(false); onSuccess?.(); }, 1200);
-      setForm({ name: "", email: "", age: "", course: "" });
+      setForm({ name: "", email: "", age: "", course: defaultCourse });
       setAvatarFile(null);
     } catch (err) {
       console.error(err);
@@ -80,7 +82,6 @@ const StudentForm = ({ onSuccess }) => {
       </div>
 
       <form onSubmit={handleSubmit} noValidate>
-        {/* Avatar upload spans full width */}
         <div style={{ marginBottom: 20 }}>
           <AvatarUpload current={null} onChange={setAvatarFile} />
         </div>

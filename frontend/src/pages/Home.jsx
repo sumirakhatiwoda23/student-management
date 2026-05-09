@@ -16,7 +16,6 @@ const Home = () => {
   const courses      = [...new Set(students.map((s) => s.course).filter(Boolean))];
   const totalStudents = pagination?.total ?? students.length;
   const totalCourses  = courses.length;
-  const isAdmin       = user?.role === "admin";
 
   const stats = [
     {
@@ -83,14 +82,13 @@ const Home = () => {
                 <span className="dash-user-role">{user?.role}</span>
               </div>
             </div>
-            {isAdmin && (
-              <button className="btn-add" onClick={() => setShowModal(true)}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="16" height="16">
-                  <path d="M12 5v14M5 12h14" strokeLinecap="round"/>
-                </svg>
-                Add Student
-              </button>
-            )}
+            {/* Both admin and staff can enroll students */}
+            <button className="btn-add" onClick={() => setShowModal(true)}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="16" height="16">
+                <path d="M12 5v14M5 12h14" strokeLinecap="round"/>
+              </svg>
+              Add Student
+            </button>
             <button className="btn-logout" onClick={logout} title="Sign out">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18">
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" strokeLinecap="round"/>
@@ -132,9 +130,7 @@ const Home = () => {
       <div className="dash-main">
         <div className="dash-section-header">
           <h3>All Students</h3>
-          {isAdmin && (
-            <button className="btn-add-sm" onClick={() => setShowModal(true)}>+ Add Student</button>
-          )}
+          <button className="btn-add-sm" onClick={() => setShowModal(true)}>+ Add Student</button>
         </div>
         <StudentList />
       </div>
