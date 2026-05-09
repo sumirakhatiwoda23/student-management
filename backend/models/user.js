@@ -11,15 +11,10 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Hash password before saving
-userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
-  try {
-    this.password = await bcrypt.hash(this.password, 12);
-    return next();
-  } catch (err) {
-    return next(err);
-  }
+// Use pre save without next — return promise instead
+userSchema.pre("save", async function () {
+  if (!this.isModified("password")) return;
+  this.password = await bcrypt.hash(this.password, 12);
 });
 
 userSchema.methods.matchPassword = async function (entered) {
