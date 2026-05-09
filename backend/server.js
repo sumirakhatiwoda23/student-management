@@ -17,6 +17,7 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Serve uploaded profile pictures statically
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
@@ -25,7 +26,12 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/auth", authRoutes);
 app.use("/students", studentRoutes);
 
-// Error Middleware
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ message: "Route not found" });
+});
+
+// Error Middleware — must be last and have 4 params
 app.use(errorHandler);
 
 // Connect DB & Start Server

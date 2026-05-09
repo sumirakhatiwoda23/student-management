@@ -17,12 +17,25 @@ const storage = multer.diskStorage({
 
 const fileFilter = (_req, file, cb) => {
   const allowed = ["image/jpeg", "image/png", "image/webp", "image/gif"];
-  if (allowed.includes(file.mimetype)) cb(null, true);
-  else cb(new Error("Only JPEG, PNG, WEBP and GIF images are allowed"), false);
+  if (allowed.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error("Only JPEG, PNG, WEBP and GIF images are allowed"), false);
+  }
 };
 
-export const uploadProfile = multer({
+const upload = multer({
   storage,
   fileFilter,
   limits: { fileSize: 3 * 1024 * 1024 }, // 3 MB
-}).single("avatar");
+});
+
+// Wrap multer in a promise so Express 5 async routes work properly
+export const uploadProfile = (req, res, next) => {
+  upload.single("avatar")(req, res, (err) => {
+    if (err) {
+      return next(err);
+    }
+    next();
+  });
+};

@@ -7,9 +7,9 @@ export const createStudent = async (req, res, next) => {
     const data = { ...req.body };
     if (req.file) data.avatar = req.file.filename;
     const student = await Student.create(data);
-    res.status(201).json(student);
+    return res.status(201).json(student);
   } catch (err) {
-    next(err);
+    return next(err);
   }
 };
 
@@ -36,7 +36,7 @@ export const getStudents = async (req, res, next) => {
       Student.countDocuments(query),
     ]);
 
-    res.json({
+    return res.json({
       students,
       pagination: {
         total,
@@ -48,7 +48,7 @@ export const getStudents = async (req, res, next) => {
       },
     });
   } catch (err) {
-    next(err);
+    return next(err);
   }
 };
 
@@ -56,10 +56,12 @@ export const getStudents = async (req, res, next) => {
 export const getStudent = async (req, res, next) => {
   try {
     const student = await Student.findById(req.params.id);
-    if (!student) return res.status(404).json({ message: "Student not found" });
-    res.json(student);
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+    return res.json(student);
   } catch (err) {
-    next(err);
+    return next(err);
   }
 };
 
@@ -67,7 +69,9 @@ export const getStudent = async (req, res, next) => {
 export const updateStudent = async (req, res, next) => {
   try {
     const existing = await Student.findById(req.params.id);
-    if (!existing) return res.status(404).json({ message: "Student not found" });
+    if (!existing) {
+      return res.status(404).json({ message: "Student not found" });
+    }
 
     const data = { ...req.body };
 
@@ -81,9 +85,9 @@ export const updateStudent = async (req, res, next) => {
     }
 
     const student = await Student.findByIdAndUpdate(req.params.id, data, { new: true });
-    res.json(student);
+    return res.json(student);
   } catch (err) {
-    next(err);
+    return next(err);
   }
 };
 
@@ -96,8 +100,8 @@ export const deleteStudent = async (req, res, next) => {
       if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
     }
     await Student.findByIdAndDelete(req.params.id);
-    res.json({ message: "Deleted successfully" });
+    return res.json({ message: "Deleted successfully" });
   } catch (err) {
-    next(err);
+    return next(err);
   }
 };

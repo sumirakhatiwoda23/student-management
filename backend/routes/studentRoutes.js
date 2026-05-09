@@ -18,6 +18,6 @@ router.post("/",    uploadProfile, createStudent);       // admin + staff
 router.get("/",    getStudents);                         // admin + staff
 router.get("/:id", getStudent);                          // admin + staff
 router.put("/:id", uploadProfile, updateStudent);        // admin + staff
-router.delete("/:id", restrictTo("admin"), deleteStudent); // admin only ❌ staff
+router.delete("/:id", restrictTo("admin"), deleteStudent); 
 
 export default router;

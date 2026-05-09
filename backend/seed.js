@@ -29,7 +29,7 @@ const seedDB = async () => {
     await User.deleteMany({});
     console.log("🗑️  Existing users cleared");
 
-    // Pre-hash passwords and use insertMany to bypass the broken pre-save hook
+    // Pre-hash passwords and use insertMany to bypass the pre-save hook
     const usersWithHashedPasswords = await Promise.all(
       seedUsers.map(async (userData) => ({
         ...userData,
