@@ -1,9 +1,16 @@
-import { useContext, useState, useEffect, useCallback } from "react";
+import { useContext, useState, useEffect, useCallback, useRef } from "react";
 import { StudentContext } from "../context/StudentContext";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { deleteStudent } from "../services/studentService";
 import Pagination from "./Pagination";
+
+const COURSES = [
+  "Computer Science","Mathematics","Physics","Chemistry","Biology","Engineering",
+  "Business","Economics","Psychology","Design","Literature","History",
+  "Data Science","Medicine","Law","Architecture","Environmental Science",
+  "Sociology","Philosophy","Art & Music",
+];
 
 const SORT_OPTIONS = [
   { value: "name-asc",   label: "Name A→Z" },
@@ -12,40 +19,52 @@ const SORT_OPTIONS = [
   { value: "age-desc",   label: "Age ↓" },
   { value: "course-asc", label: "Course A→Z" },
 ];
+
 const AVATAR_URL = "https://student-management-1-a7x3.onrender.com/uploads/profiles/";
 
-const StudentList = ({ initialCourse = "all" }) => {
+const StudentList = ({ courseFromUrl = "all", onCourseChange }) => {
   const { students, pagination, queryParams, fetchStudents } = useContext(StudentContext);
   const { user } = useContext(AuthContext);
   const isAdmin = user?.role === "admin";
-
   const navigate = useNavigate();
+
   const [search, setSearch]         = useState("");
-  const [courseFilter, setCourse]   = useState(initialCourse);
   const [sort, setSort]             = useState("name-asc");
   const [deletingId, setDeletingId] = useState(null);
   const [viewMode, setViewMode]     = useState("table");
+  const [isLoading, setIsLoading]   = useState(false);
 
-  // When initialCourse changes (e.g. navigating from Courses page), update filter
+  // Use a ref to track the debounce timer
+  const debounceRef = useRef(null);
+
+  // Single effect — reacts to URL course change OR search change
   useEffect(() => {
-    setCourse(initialCourse);
-  }, [initialCourse]);
+    // Clear any pending debounce
+    if (debounceRef.current) clearTimeout(debounceRef.current);
 
-  // Fetch whenever search or courseFilter changes
-  useEffect(() => {
-    const t = setTimeout(() => {
-      fetchStudents({ ...queryParams, page: 1, search, course: courseFilter });
-    }, 300);
-    return () => clearTimeout(t);
-  }, [search, courseFilter]); // eslint-disable-line react-hooks/exhaustive-deps
+    // Debounce only for search input; course changes are instant
+    const delay = search !== (queryParams.search || "") ? 300 : 0;
 
-  // Fetch on mount with initial course filter
-  useEffect(() => {
-    fetchStudents({ page: 1, limit: 10, search: "", course: initialCourse });
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    debounceRef.current = setTimeout(async () => {
+      setIsLoading(true);
+      await fetchStudents({
+        page: 1,
+        limit: 10,
+        search,
+        course: courseFromUrl,
+      });
+      setIsLoading(false);
+    }, delay);
 
-  const handlePageChange = useCallback((page) => {
-    fetchStudents({ ...queryParams, page });
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [search, courseFromUrl]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handlePageChange = useCallback(async (page) => {
+    setIsLoading(true);
+    await fetchStudents({ ...queryParams, page });
+    setIsLoading(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [fetchStudents, queryParams]);
 
@@ -56,9 +75,13 @@ const StudentList = ({ initialCourse = "all" }) => {
     setDeletingId(null);
   };
 
+  const handleCourseSelect = (e) => {
+    onCourseChange?.(e.target.value);
+  };
+
   const clearFilters = () => {
     setSearch("");
-    setCourse("all");
+    onCourseChange?.("all");
   };
 
   // Client-side sort
@@ -91,8 +114,11 @@ const StudentList = ({ initialCourse = "all" }) => {
   const AvatarFallback = ({ student, size = 36 }) => (
     <div
       className="avatar"
-      style={{ background: getColor(student.name), width: size, height: size,
-               display: student.avatar ? "none" : "flex" }}
+      style={{
+        background: getColor(student.name),
+        width: size, height: size,
+        display: student.avatar ? "none" : "flex",
+      }}
     >
       {getInitials(student.name)}
     </div>
@@ -116,33 +142,40 @@ const StudentList = ({ initialCourse = "all" }) => {
         </div>
 
         <div className="toolbar-right">
-          {/* Course filter dropdown */}
+          {/* Course filter — controlled by URL */}
           <select
             className="select-filter"
-            value={courseFilter}
-            onChange={(e) => setCourse(e.target.value)}
+            value={courseFromUrl}
+            onChange={handleCourseSelect}
           >
             <option value="all">All Courses</option>
-            {["Computer Science","Mathematics","Physics","Chemistry","Biology","Engineering",
-              "Business","Economics","Psychology","Design","Literature","History",
-              "Data Science","Medicine","Law","Architecture","Environmental Science",
-              "Sociology","Philosophy","Art & Music"].map((c) => (
+            {COURSES.map((c) => (
               <option key={c} value={c}>{c}</option>
             ))}
           </select>
 
           <select className="select-filter" value={sort} onChange={(e) => setSort(e.target.value)}>
-            {SORT_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+            {SORT_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
           </select>
 
           <div className="view-toggle">
-            <button className={`view-btn ${viewMode === "table" ? "active" : ""}`} onClick={() => setViewMode("table")} title="Table">
+            <button
+              className={`view-btn ${viewMode === "table" ? "active" : ""}`}
+              onClick={() => setViewMode("table")}
+              title="Table"
+            >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
                 <rect x="3" y="3" width="18" height="18" rx="2"/>
                 <path d="M3 9h18M3 15h18M9 3v18" strokeLinecap="round"/>
               </svg>
             </button>
-            <button className={`view-btn ${viewMode === "grid" ? "active" : ""}`} onClick={() => setViewMode("grid")} title="Grid">
+            <button
+              className={`view-btn ${viewMode === "grid" ? "active" : ""}`}
+              onClick={() => setViewMode("grid")}
+              title="Grid"
+            >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
                 <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
                 <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
@@ -155,18 +188,38 @@ const StudentList = ({ initialCourse = "all" }) => {
       {/* Results info */}
       <div className="results-info">
         <span>
-          {pagination
-            ? `${pagination.total} student${pagination.total !== 1 ? "s" : ""} total`
-            : `${students.length} student${students.length !== 1 ? "s" : ""}`}
-          {courseFilter !== "all" && ` in ${courseFilter}`}
+          {isLoading ? "Loading…" : (
+            <>
+              {pagination
+                ? `${pagination.total} student${pagination.total !== 1 ? "s" : ""}`
+                : `${students.length} student${students.length !== 1 ? "s" : ""}`}
+              {courseFromUrl !== "all" && (
+                <strong style={{ color: "var(--amber)", marginLeft: 4 }}>
+                  in {courseFromUrl}
+                </strong>
+              )}
+            </>
+          )}
         </span>
-        {(search || courseFilter !== "all") && (
-          <button className="clear-filters" onClick={clearFilters}>Clear filters</button>
+        {(search || courseFromUrl !== "all") && (
+          <button className="clear-filters" onClick={clearFilters}>
+            Clear filters
+          </button>
         )}
       </div>
 
+      {/* Loading overlay */}
+      {isLoading && (
+        <div style={{
+          display: "flex", justifyContent: "center",
+          alignItems: "center", padding: "40px",
+        }}>
+          <div className="page-spinner" />
+        </div>
+      )}
+
       {/* Empty state */}
-      {sorted.length === 0 && (
+      {!isLoading && sorted.length === 0 && (
         <div className="empty-state">
           <div className="empty-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" width="48" height="48">
@@ -175,16 +228,16 @@ const StudentList = ({ initialCourse = "all" }) => {
           </div>
           <p>No students found</p>
           <span>
-            {courseFilter !== "all"
-              ? `No students enrolled in ${courseFilter} yet`
+            {courseFromUrl !== "all"
+              ? `No students enrolled in ${courseFromUrl} yet`
               : "Try adjusting your search or filters"}
           </span>
         </div>
       )}
 
       {/* ── Table View ── */}
-      {viewMode === "table" && sorted.length > 0 && (
-        <div className="table-wrap">
+      {!isLoading && viewMode === "table" && sorted.length > 0 && (
+        <div className="table-wrap" style={{ opacity: isLoading ? 0.5 : 1, transition: "opacity 0.2s" }}>
           <table className="student-table">
             <thead>
               <tr>
@@ -194,7 +247,11 @@ const StudentList = ({ initialCourse = "all" }) => {
             </thead>
             <tbody>
               {sorted.map((student, i) => (
-                <tr key={student._id} style={{ animationDelay: `${i * 30}ms` }} className="table-row">
+                <tr
+                  key={student._id}
+                  style={{ animationDelay: `${i * 30}ms` }}
+                  className="table-row"
+                >
                   <td>
                     <div className="student-cell">
                       <AvatarImg student={student} />
@@ -241,17 +298,32 @@ const StudentList = ({ initialCourse = "all" }) => {
       )}
 
       {/* ── Grid View ── */}
-      {viewMode === "grid" && sorted.length > 0 && (
+      {!isLoading && viewMode === "grid" && sorted.length > 0 && (
         <div className="student-grid">
           {sorted.map((student, i) => (
-            <div key={student._id} className="student-card" style={{ animationDelay: `${i * 40}ms` }}>
+            <div
+              key={student._id}
+              className="student-card"
+              style={{ animationDelay: `${i * 40}ms` }}
+            >
               {student.avatar ? (
-                <img src={`${AVATAR_URL}${student.avatar}`} alt={student.name}
+                <img
+                  src={`${AVATAR_URL}${student.avatar}`}
+                  alt={student.name}
                   className="card-avatar-img"
-                  onError={(e) => { e.target.style.display = "none"; e.target.nextSibling.style.display = "flex"; }} />
+                  onError={(e) => {
+                    e.target.style.display = "none";
+                    e.target.nextSibling.style.display = "flex";
+                  }}
+                />
               ) : null}
-              <div className="card-avatar" style={{ background: getColor(student.name),
-                display: student.avatar ? "none" : "flex" }}>
+              <div
+                className="card-avatar"
+                style={{
+                  background: getColor(student.name),
+                  display: student.avatar ? "none" : "flex",
+                }}
+              >
                 {getInitials(student.name)}
               </div>
               <h3 className="card-name">{student.name}</h3>
@@ -261,10 +333,15 @@ const StudentList = ({ initialCourse = "all" }) => {
                 <span className="age-badge">Age {student.age}</span>
               </div>
               <div className="card-actions">
-                <button className="btn-edit" onClick={() => navigate(`/edit/${student._id}`)}>Edit</button>
+                <button className="btn-edit" onClick={() => navigate(`/edit/${student._id}`)}>
+                  Edit
+                </button>
                 {isAdmin && (
-                  <button className={`btn-delete ${deletingId === student._id ? "loading" : ""}`}
-                    onClick={() => handleDelete(student._id)} disabled={deletingId === student._id}>
+                  <button
+                    className={`btn-delete ${deletingId === student._id ? "loading" : ""}`}
+                    onClick={() => handleDelete(student._id)}
+                    disabled={deletingId === student._id}
+                  >
                     {deletingId === student._id ? <span className="spinner" /> : "Delete"}
                   </button>
                 )}
@@ -275,7 +352,9 @@ const StudentList = ({ initialCourse = "all" }) => {
       )}
 
       {/* Pagination */}
-      <Pagination pagination={pagination} onPageChange={handlePageChange} />
+      {!isLoading && (
+        <Pagination pagination={pagination} onPageChange={handlePageChange} />
+      )}
     </div>
   );
 };

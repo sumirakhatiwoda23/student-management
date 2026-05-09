@@ -1,4 +1,4 @@
-import { useContext, useState, useEffect } from "react";
+import { useContext, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import StudentList from "../components/StudentList";
@@ -9,10 +9,18 @@ import DashHeader from "../components/DashHeader";
 const StudentsPage = () => {
   const { user } = useContext(AuthContext);
   const [showModal, setShowModal] = useState(false);
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  // Read ?course=... from URL (set by CoursesPage)
+  // Always read directly from URL — works on refresh too
   const courseFilter = searchParams.get("course") || "all";
+
+  const handleCourseChange = (course) => {
+    if (course === "all") {
+      setSearchParams({});
+    } else {
+      setSearchParams({ course });
+    }
+  };
 
   return (
     <div className="dashboard">
@@ -33,8 +41,10 @@ const StudentsPage = () => {
       </div>
 
       <div className="dash-main">
-        {/* Pass the course filter down to StudentList */}
-        <StudentList initialCourse={courseFilter} />
+        <StudentList
+          courseFromUrl={courseFilter}
+          onCourseChange={handleCourseChange}
+        />
       </div>
 
       {showModal && (
