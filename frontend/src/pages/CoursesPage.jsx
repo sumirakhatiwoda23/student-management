@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { StudentContext } from "../context/StudentContext";
 import Modal from "../components/Modal";
@@ -29,10 +29,15 @@ const ALL_COURSES = [
 ];
 
 const CoursesPage = () => {
-  const { students } = useContext(StudentContext);
+  const { students, fetchStudents } = useContext(StudentContext);
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState(null);
+
+  // Fetch all students on mount so enrollment counts are accurate after a refresh
+  useEffect(() => {
+    fetchStudents({ page: 1, limit: 100, course: "all" });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Count enrolled students per course from real data
   const enrolledMap = {};
