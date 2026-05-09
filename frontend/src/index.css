@@ -534,9 +534,7 @@ button { cursor: pointer; font-family: inherit; border: none; background: none; 
 @media (max-width: 480px) { .stats-grid { grid-template-columns: 1fr; } .student-grid { grid-template-columns: 1fr; } }
 
 
-/* ════════════════════════════════════════
-   ADDITIONS — paste at end of index.css
-════════════════════════════════════════ */
+
 
 /* ── Avatar Upload (beautiful version) ── */
 .avatar-upload-field { display: flex; flex-direction: column; gap: 8px; }
@@ -821,3 +819,48 @@ button { cursor: pointer; font-family: inherit; border: none; background: none; 
   padding: 28px 24px 0;
   display: flex; justify-content: space-between; align-items: center;
 }
+
+
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position:  400px 0; }
+}
+
+.skeleton-text {
+  display: inline-block;
+  height: 1em;
+  border-radius: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--bg-3) 25%,
+    var(--bg-4) 50%,
+    var(--bg-3) 75%
+  );
+  background-size: 800px 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+/* Stat card skeleton state — numbers hidden while loading */
+.stat-skeleton .dsc-value { color: transparent; }
+.stat-skeleton .dsc-icon  { opacity: 0.3; }
+.stat-skeleton .dsc-arrow { opacity: 0; }
+
+/* Course badge shimmer while loading */
+.cc-badge-loading {
+  background: linear-gradient(
+    90deg,
+    var(--bg-3) 25%,
+    var(--bg-4) 50%,
+    var(--bg-3) 75%
+  ) !important;
+  background-size: 400px 100% !important;
+  animation: shimmer 1.4s ease-in-out infinite;
+  color: transparent !important;
+  min-width: 80px;
+  border-radius: 100px;
+}
+
+/* Smooth fade-in once data arrives */
+.cc-badge     { transition: background 0.4s ease, color 0.4s ease; }
+.dsc-value    { transition: opacity 0.3s ease; }
+
